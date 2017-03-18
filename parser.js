@@ -1,6 +1,11 @@
 var csv = require("fast-csv");
 var keys = [];
-var jsondata = [];
+
+var fs = require('fs');
+var stream = fs.createWriteStream("output.json",{flags:'w'});
+stream.write("[\n");
+
+var comma = false;
 
 csv
   .fromPath("input.csv")
@@ -12,15 +17,15 @@ csv
         keys.forEach(function(key, index) {
           e[key] = data[index];
         });
-      jsondata.push(e);
+
+      if(comma)
+        stream.write(",\n");
+      stream.write(JSON.stringify(e));
+      comma = true;
     }
   })
   .on("end", function(){
-    var fs = require('fs');
-    fs.writeFile("output.json", JSON.stringify(jsondata), function(err) {
-      if(err)
-        return console.log(err);
-
-      console.log("The file was saved!");
-    });
+    stream.write("]");
+    stream.end();
+    console.log("The file was saved!");
   });
